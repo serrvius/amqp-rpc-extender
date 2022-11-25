@@ -23,7 +23,7 @@ class AmqpRpcStamp implements StampInterface
         public readonly int $waitingResponseTTL = 10
     ) {
         $this->correlationId = $correlationId ?? md5(microtime(true));
-        $this->replayToQueue = $queueName.'_replay_'.md5(microtime(true).$this->getCorrelationId());
+        $this->replayToQueue = $queueName.'_replay_'.md5(microtime(true) .  $this->getCorrelationId());
     }
 
     /**

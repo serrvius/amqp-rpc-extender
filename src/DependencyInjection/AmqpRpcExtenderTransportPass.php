@@ -14,7 +14,7 @@ class AmqpRpcExtenderTransportPass implements CompilerPassInterface
     {
         $definition = new Definition(AmqpRpcTransportFactory::class);
         $definition->addTag('messenger.transport_factory');
-        $container->setDefinition('messenger.transport.amqp.extender.factory', $definition);
+        $container->setDefinition('messenger.transport.amqp.rpc.extender.factory', $definition);
     }
 
 }

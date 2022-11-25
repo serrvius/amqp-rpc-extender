@@ -2,7 +2,7 @@
 
 namespace Serrvius\AmqpRpcExtender;
 
-use App\Common\DependencyInjection\AmqpRpcExtenderTransportPass;
+use Serrvius\AmqpRpcExtender\DependencyInjection\AmqpRpcExtenderTransportPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
