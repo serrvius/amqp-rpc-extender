@@ -5,7 +5,8 @@
     "require": {
         "php": ">=8.1",
         "ext-amqp": "*",
-        "symfony/amqp-messenger": "^6.1"
+        "symfony/amqp-messenger": "6.1.*",
+        "symfony/uid": "6.1.*"
     },
     "license": "MIT",
     "autoload": {
@@ -19,5 +20,5 @@
             "email": "serrvius@gmail.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }
