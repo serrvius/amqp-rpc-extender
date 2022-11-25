@@ -13,7 +13,7 @@ class AmqpRpcExtenderBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
-        $container->addCompilerPass(new AmqpRpcExtenderTransportPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION,1);
+        $container->addCompilerPass(new AmqpRpcExtenderTransportPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION,-100);
     }
 
 }

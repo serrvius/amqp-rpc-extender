@@ -7,6 +7,7 @@ use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcResultStamp;
 use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcStamp;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpFactory;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpReceivedStamp;
+use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpReceiver;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpTransport;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\Connection;
@@ -21,11 +22,14 @@ class AmqpRpcTransport extends AmqpTransport
     protected Connection          $connection;
     protected SerializerInterface $serializer;
     protected AmqpFactory         $amqpFactory;
+    protected AmqpReceiver         $amqpReceiver;
 
     public function __construct(Connection $connection, SerializerInterface $serializer = null)
     {
         $this->connection  = $connection;
         $this->serializer  = $serializer;
+        $this->amqpReceiver = new AmqpRcpReceiver($connection,$serializer);
+
         $this->amqpFactory = new AmqpFactory();
 
         parent::__construct($connection, $serializer);
@@ -34,7 +38,7 @@ class AmqpRpcTransport extends AmqpTransport
 
     public function get(): iterable
     {
-        return parent::get();
+        return $this->amqpReceiver->get();
     }
 
     /**
@@ -42,7 +46,7 @@ class AmqpRpcTransport extends AmqpTransport
      */
     public function getFromQueues(array $queueNames): iterable
     {
-        return parent::getFromQueues($queueNames);
+        return $this->amqpReceiver->getFromQueues($queueNames);
     }
 
     /**
@@ -50,8 +54,7 @@ class AmqpRpcTransport extends AmqpTransport
      */
     public function ack(Envelope $envelope): void
     {
-        $a = 'b';
-        parent::ack($envelope);
+        $this->amqpReceiver->ack($envelope);
     }
 
     /**
@@ -85,7 +88,7 @@ class AmqpRpcTransport extends AmqpTransport
 
             $responseQueue = $this->createResponseQueue($amqpExtenderRcpStamp);
 
-            parent::send($rpcEnvelope->withoutStampsOfType(AmqpRpcStamp::class));
+            parent::send($rpcEnvelope);
 
 
             $startTime = time();
