@@ -3,37 +3,37 @@
 namespace Serrvius\AmqpRpcExtender\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
+use Symfony\Component\Uid\Uuid;
 
-class AmqpRpcStamp implements StampInterface
+class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
 {
 
 
-    protected string $replayToQueue;
+    public string  $replayToQueue;
+    public ?string $correlationId;
 
 
     /**
      * @param  string  $queueName
      * @param  string|null  $correlationId
-     * @param  int  $waitingResponseTTL - seconds
+     * @param  int  $waitingResponseTTL  - seconds
      */
     public function __construct(
         protected readonly string $queueName,
-        protected readonly string $procedureName,
-        protected ?string $correlationId = null,
+        protected readonly string $executorName,
         public readonly int $waitingResponseTTL = 10
     ) {
-        $this->correlationId = $correlationId ?? md5(microtime(true));
-        $this->replayToQueue = $queueName.'_replay_'.md5(microtime(true) .  $this->getCorrelationId());
+        $this->correlationId = $this->correlationId ?? Uuid::v4();
+        $this->replayToQueue = $this->replayToQueue ?? $this->executorName.'_replay_'.Uuid::v4();
     }
 
     /**
      * @return string
      */
-    public function getProcedureName(): string
+    public function getExecutorName(): string
     {
-        return $this->procedureName;
+        return $this->executorName;
     }
-
 
     /**
      * @return string
@@ -42,7 +42,6 @@ class AmqpRpcStamp implements StampInterface
     {
         return $this->queueName;
     }
-
 
     public function getReplayToQueue(): string
     {
@@ -56,6 +55,7 @@ class AmqpRpcStamp implements StampInterface
     {
         return $this->correlationId;
     }
+
 
 
 }

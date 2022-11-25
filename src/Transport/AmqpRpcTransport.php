@@ -3,8 +3,10 @@
 namespace Serrvius\AmqpRpcExtender\Transport;
 
 
-use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcResultStamp;
-use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcStamp;
+use Serrvius\AmqpRpcExtender\Serializer\AmqpRpcMessageSerializer;
+use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcCommandStamp;
+use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryResultStamp;
+use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryStamp;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpFactory;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpReceivedStamp;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpReceiver;
@@ -14,21 +16,29 @@ use Symfony\Component\Messenger\Bridge\Amqp\Transport\Connection;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
 use Symfony\Component\Messenger\Exception\TransportException;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 class AmqpRpcTransport extends AmqpTransport
 {
 
-    protected Connection          $connection;
-    protected SerializerInterface $serializer;
-    protected AmqpFactory         $amqpFactory;
+    protected Connection           $connection;
+    protected SerializerInterface  $serializer;
+    protected AmqpFactory          $amqpFactory;
     protected AmqpReceiver         $amqpReceiver;
+    protected ?SerializerInterface $amqpSerializer;
 
-    public function __construct(Connection $connection, SerializerInterface $serializer = null)
-    {
-        $this->connection  = $connection;
-        $this->serializer  = $serializer;
-        $this->amqpReceiver = new AmqpRcpReceiver($connection,$serializer);
+    public function __construct(
+        Connection $connection,
+        SerializerInterface $serializer = null,
+        AmqpRpcMessageSerializer $amqpSerializer = null
+    ) {
+        $this->connection     = $connection;
+        $this->serializer     = $serializer;
+        $this->amqpSerializer = $amqpSerializer;
+
+        $this->amqpReceiver = new AmqpRcpReceiver($connection, $serializer, $amqpSerializer);
+        $this->amqpReceiver->addTransport($this);
 
         $this->amqpFactory = new AmqpFactory();
 
@@ -68,25 +78,34 @@ class AmqpRpcTransport extends AmqpTransport
 
     public function send(Envelope $envelope): Envelope
     {
-        $amqpExtenderRcpStamp = $envelope->last(AmqpRpcStamp::class);
 
-        if ($amqpExtenderRcpStamp) {
-            $queueName     = $amqpExtenderRcpStamp->getReplayToQueue();
-            $correlationId = $amqpExtenderRcpStamp->getCorrelationId();
+        //Command logic
+        if ($amqpRpcCommandStamp = $envelope->last(AmqpRpcCommandStamp::class)) {
+
+            $envelope = $envelope->with(new AmqpStamp($amqpRpcCommandStamp->getQueueName(), AMQP_NOPARAM, [
+                'headers' => [
+                    'executor' => $amqpRpcCommandStamp->getExecutorName()
+                ],
+            ]));
+
+            //Query logic
+        } elseif ($amqpRpcQueryStamp = $envelope->last(AmqpRpcQueryStamp::class)) {
+            $queueName     = $amqpRpcQueryStamp->getReplayToQueue();
+            $correlationId = $amqpRpcQueryStamp->getCorrelationId();
 
             $rpcEnvelope = $envelope->with(new AmqpStamp(
-                $amqpExtenderRcpStamp->getQueueName(),
+                $amqpRpcQueryStamp->getQueueName(),
                 AMQP_NOPARAM,
                 [
                     'headers'        => [
-                        'procedure' => $amqpExtenderRcpStamp->getProcedureName()
+                        'executor' => $amqpRpcQueryStamp->getExecutorName()
                     ],
-                    'correlation_id' => $amqpExtenderRcpStamp->getCorrelationId(),
-                    'reply_to'       => $amqpExtenderRcpStamp->getReplayToQueue()
+                    'correlation_id' => $amqpRpcQueryStamp->getCorrelationId(),
+                    'reply_to'       => $amqpRpcQueryStamp->getReplayToQueue()
                 ]
             ));
 
-            $responseQueue = $this->createResponseQueue($amqpExtenderRcpStamp);
+            $responseQueue = $this->createResponseQueue($amqpRpcQueryStamp);
 
             parent::send($rpcEnvelope);
 
@@ -97,14 +116,29 @@ class AmqpRpcTransport extends AmqpTransport
                 /** @var \AMQPEnvelope $amqpEnvelope */
                 $amqpEnvelope = $responseQueue->get();
                 usleep(250);
-            } while ((!$amqpEnvelope || $correlationId != $amqpEnvelope->getCorrelationId()) && time() - $startTime < $amqpExtenderRcpStamp->waitingResponseTTL);
+            } while ((!$amqpEnvelope || $correlationId != $amqpEnvelope->getCorrelationId()) && time() - $startTime < $amqpRpcQueryStamp->waitingResponseTTL);
 
 
             try {
-                $body     = $amqpEnvelope->getBody()??false;
-                if($body){
-                    $envelope = $envelope->with(new AmqpRpcResultStamp(json_decode($body,true)));
+                if(!$amqpEnvelope){
+                    throw new TransportException('Amqp RPC Query - answer TTL expired!');
                 }
+
+                $body    = $amqpEnvelope->getBody();
+                $headers = $amqpEnvelope->getHeaders();
+
+                $respEnvelope = $this->serializer->decode([
+                    'body'    => false === $body ? '' : $body,
+                    // workaround https://github.com/pdezwart/php-amqp/issues/351
+                    'headers' => $headers,
+                ]);
+                /** @var AmqpRpcQueryResultStamp $amqpRpcQueryResponseStamp */
+                if (($amqpRpcQueryResponseStamp = $respEnvelope->last(AmqpRpcQueryResultStamp::class))) {
+                    $envelope = $envelope->with($amqpRpcQueryResponseStamp);
+                    $envelope = $envelope->with(new HandledStamp($amqpRpcQueryResponseStamp->getResults(),
+                        'amqp_rpc_query_handler'));
+                }
+
             } catch (MessageDecodingFailedException $exception) {
                 // invalid message of some type
                 $this->rejectAmqpEnvelope($amqpEnvelope, $queueName);
@@ -112,7 +146,8 @@ class AmqpRpcTransport extends AmqpTransport
                 throw $exception;
             }
 
-            return $envelope->with(new AmqpReceivedStamp($amqpEnvelope, $amqpExtenderRcpStamp->getQueueName()));
+
+            return $envelope->with(new AmqpReceivedStamp($amqpEnvelope, $amqpRpcQueryStamp->getQueueName()));
 
 
         }
@@ -129,14 +164,14 @@ class AmqpRpcTransport extends AmqpTransport
         }
     }
 
-    protected function createResponseQueue(AmqpRpcStamp $amqpExtenderRcpStamp)
+    protected function createResponseQueue(AmqpRpcQueryStamp $amqpRpcQueryStamp)
     {
         $responseQueue = $this->amqpFactory->createQueue($this->connection->channel());
-        $responseQueue->setName($amqpExtenderRcpStamp->getReplayToQueue());
+        $responseQueue->setName($amqpRpcQueryStamp->getReplayToQueue());
         $responseQueue->setFlags(AMQP_EXCLUSIVE);
         $responseQueue->declareQueue();
 
-        $responseQueue->bind($this->connection->exchange()->getName(),$amqpExtenderRcpStamp->getReplayToQueue());
+        $responseQueue->bind($this->connection->exchange()->getName(), $amqpRpcQueryStamp->getReplayToQueue());
 
 
         return $responseQueue;
