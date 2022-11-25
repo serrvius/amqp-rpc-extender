@@ -1,0 +1,23 @@
+{
+    "name": "serrvius/amqp-rpc-extender",
+    "description": "The extension for symfony/amqp-messenger to implement RPC calls",
+    "type": "symfony-amqp-rcp",
+    "require": {
+        "php": ">=8.1",
+        "ext-amqp": "*",
+        "symfony/amqp-messenger": "^6.1"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Serrvius\\AmqpRpcExtender\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sergiu Botnarenco",
+            "email": "serrvius@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
