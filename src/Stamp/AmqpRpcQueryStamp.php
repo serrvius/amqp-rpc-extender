@@ -3,6 +3,8 @@
 namespace Serrvius\AmqpRpcExtender\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
+use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcStampInterface;
+
 use Symfony\Component\Uid\Uuid;
 
 class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
