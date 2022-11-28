@@ -3,8 +3,9 @@
 namespace Serrvius\AmqpRpcExtender\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
+use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcStampInterface;
 
-class AmqpRpcCommandStamp implements AmqpRpcStampInterface, StampInterface
+class AmqpRpcCommandStamp implements StampInterface, AmqpRpcStampInterface
 {
 
     /**

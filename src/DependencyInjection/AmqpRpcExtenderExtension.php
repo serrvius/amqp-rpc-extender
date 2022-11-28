@@ -3,9 +3,7 @@
 namespace Serrvius\AmqpRpcExtender\DependencyInjection;
 
 use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcCommandExecutor;
-use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcCommandRequest;
 use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcQueryExecutor;
-use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcQueryRequest;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcRequestInterface;
