@@ -39,12 +39,12 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
         $queryExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.query.executor',
             AmqpRpcQueryInterface::class,
-            'queryIndex', $container);
+            'executorName', $container);
 
         $commandExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.command.executor',
             AmqpRpcCommandInterface::class,
-            'commandIndex',
+            'executorName',
             $container
         );
 

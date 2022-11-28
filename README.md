@@ -161,7 +161,7 @@ The command need to implement the interface
 ```
 Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface
 ```
-the methods `commandIndex` should return the name of executor of gateway command
+the methods `executorName` should return the name of executor of gateway command
 and in method `setCommandData` the bundle will put the input message as array
 
 ### Examples of microservice command messages:
@@ -262,7 +262,7 @@ class ShowUserQueryExecutor implements AmqpRpcQueryInterface
     }
 
 ```
-the method  `queryIndex` should return the `executorName` from gateway query call
+the method  `executorName` should return the `executorName` from gateway query call
 and in method `setQueryData` will receive the input data as array.
 
 On command the handler will be called as usual messenger doing it 
@@ -290,7 +290,7 @@ class ListUserQueryExecutor
 the `name` of annotation is also the `executorName` of gateway message and the data
 will be mapped into properties
  
-The handler of query should return the data that to return it on the gateway request which will wainting for it
+The handler of query should return the data that to return it on the gateway request which will waiting for it
 
 ```php
 <?php
@@ -315,6 +315,15 @@ class ShowUserQueryHandler
 }
 ```
 
+For accessing the response data from query request after message was dispatched in envelop that will be returned 
+by dispatch, access the stamp.
+```
+Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryResultStamp
+```
+The stamp has the method `getResults` and  there will be present the response data
+also like additional stamp with response there will be the `HandledStamp`
+
+
 ## Additional
 
 The query request stamp 
@@ -322,10 +331,11 @@ The query request stamp
 Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryStamp
 ```
 accept those attributes:
-* $queueName - the queue name
-* $executorName - the executor name
-* $waitingResponseTTL - the time (in seconds) for wainting the response from microservice, default is 10 secons
+* `$queueName` - the queue name
+* `$executorName` - the executor name
+* `$waitingResponseTTL` - the time (in seconds) for waiting the response from microservice, default is 10 secons
 
+**The extension don't call the gateway messages handlers**
 
 ## Remarks
 The inspiring and documentation used for did that work was taken from:
