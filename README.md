@@ -332,57 +332,7 @@ The inspiring and documentation used for did that work was taken from:
 
 [leberknecht/amqp-rpc-transporter-bundle](https://github.com/leberknecht/amqp-rpc-transporter-bundle)
 [Remote procedure call (RPC)](https://www.rabbitmq.com/tutorials/tutorial-six-php.html)
-=======
-
-All call initiator messages class need to implement the interface:
-```
-Serrvius\AmqpRpcExtender\Stamp\AmqpRpcStampInterface
-```
-
-For command messages (classic async work): `AmqpRpcStampInterface`
-the method: `amqpRpcStamp` should return: `Serrvius\AmqpRpcExtender\Stamp\AmqpRpcCommandStamp`
-
-For query messages (need response from microservice): `AmqpRpcStampInterface`
-the method: `amqpRpcStamp` should return: `Serrvius\AmqpRpcExtender\Stamp\ Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryStamp`
-
-Those stamps hase the attribute `executorName` the name of it will be used on microservice
-side to identifier the message normalizer and handler
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```php
-    // send
-    $rpcCallMessage = new RpcCallMessage();
-
-    $envelope = $this->messageBus->dispatch($rpcCallMessage);
-    /** @var ResponseStamp $response */
-    $response = $envelope->last(ResponseStamp::class);
-    $result = $response->getResult();
-```
-
-To set the result from the handler, just return something:
-```php
-    final public function __invoke(RpcCallMessage $message): void
-    {
-        [...]
-        return 42;
-    }
-```
-
-## Remarks
-This is a work-in-progress, as a first-shot workaround. It would be much more elegant to override the `messenger.transport.amqp.factory` service and add `rpc: true` and `rpc_queue_name` to the messenger config, so we extend the existing transporter instead of bringing in this new one. Also note: in this state, we will always generate a exclusive queue with a random name for the response. This is sub-optimal for heavy loaded queues, see https://www.rabbitmq.com/tutorials/tutorial-six-python.html  
 
