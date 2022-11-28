@@ -121,6 +121,7 @@ class AmqpRpcTransport extends AmqpTransport
 
             try {
                 if (!$amqpEnvelope) {
+
                     throw new TransportException('Amqp RPC Query - answer TTL expired!');
                 }
 
