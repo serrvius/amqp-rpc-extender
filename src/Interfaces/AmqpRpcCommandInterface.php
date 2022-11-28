@@ -5,7 +5,7 @@ namespace Serrvius\AmqpRpcExtender\Interfaces;
 interface AmqpRpcCommandInterface
 {
 
-    public static function commandIndex(): string;
+    public static function executorName(): string;
 
     public function setCommandData(array $data): void;
 
