@@ -2,9 +2,8 @@
 
 namespace Serrvius\AmqpRpcExtender\Stamp;
 
-use Symfony\Component\Messenger\Stamp\StampInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcStampInterface;
-
+use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Uid\Uuid;
 
 class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
@@ -16,14 +15,16 @@ class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
 
 
     /**
-     * @param  string  $queueName
-     * @param  string|null  $correlationId
-     * @param  int  $waitingResponseTTL  - seconds
+     * @param string $routingKey
+     * @param string|null $executorName - if is not defined then will use the routingKey executor name
+     * @param int $waitingResponseTTL - seconds
+     * @param int|null $priority - from 1-255
      */
     public function __construct(
-        protected readonly string $queueName,
-        protected readonly string $executorName,
-        public readonly int $waitingResponseTTL = 10
+        protected readonly string $routingKey,
+        protected readonly ?string $executorName = null,
+        public readonly int $waitingResponseTTL = 10,
+        public readonly ?int $priority = null
     ) {
         $this->correlationId = $this->correlationId ?? Uuid::v4();
         $this->replayToQueue = $this->replayToQueue ?? $this->executorName.'_replay_'.Uuid::v4();
@@ -34,15 +35,15 @@ class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
      */
     public function getExecutorName(): string
     {
-        return $this->executorName;
+        return $this->executorName??$this->getRoutingKey();
     }
 
     /**
      * @return string
      */
-    public function getQueueName(): string
+    public function getRoutingKey(): string
     {
-        return $this->queueName;
+        return $this->routingKey;
     }
 
     public function getReplayToQueue(): string
@@ -58,6 +59,9 @@ class AmqpRpcQueryStamp implements AmqpRpcStampInterface, StampInterface
         return $this->correlationId;
     }
 
+    public function getPriority(): ?int {
+        return $this->priority;
+    }
 
 
 }

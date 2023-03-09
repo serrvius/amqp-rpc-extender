@@ -127,7 +127,7 @@ class ShowUserQuery  implements AmqpRpcRequestInterface
 
     public function amqpRpcStamp(): AmqpRpcQueryStamp
     {
-        return new AmqpRpcQueryStamp('user_queries','show_user');
+        return new AmqpRpcQueryStamp('user_queries');
     }
 
 ```
@@ -145,7 +145,7 @@ class CreateUserCommand  implements AmqpRpcRequestInterface
  
     public function amqpRpcStamp(): AmqpRpcCommandStamp
     {
-        return new AmqpRpcCommandStamp('user_create','user_create');
+        return new AmqpRpcCommandStamp('user_create');
     }
 
 ```
@@ -182,11 +182,11 @@ class UpdateUserCommand implements AmqpRpcCommandInterface
         return 'user_update';
     }
 
-    protected $commadData;
+    protected $commnadData;
 
     public function setCommandData(array $data): void
     {
-        $this->commadData = $data;
+        $this->commnadData = $data;
     }
 
 ```
@@ -331,10 +331,10 @@ The query request stamp
 Serrvius\AmqpRpcExtender\Stamp\AmqpRpcQueryStamp
 ```
 accept those attributes:
-* `$queueName` - the queue name
-* `$executorName` - the executor name
+* `$routingKey` - the routing key that was defined in messenger queue
+* `$executorName` - the executor name (by default it will use the routingKey)
 * `$waitingResponseTTL` - the time (in seconds) for waiting the response from microservice, default is 10 secons
-
+* `$priority` - the priority value, by default it was not set 
 **The extension don't call the gateway messages handlers**
 
 ## Remarks

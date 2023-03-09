@@ -22,19 +22,20 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 class AmqpRpcTransport extends AmqpTransport
 {
 
-    protected Connection           $connection;
-    protected SerializerInterface  $serializer;
-    protected AmqpFactory          $amqpFactory;
-    protected AmqpReceiver         $amqpReceiver;
+    protected Connection $connection;
+    protected SerializerInterface $serializer;
+    protected AmqpFactory $amqpFactory;
+    protected AmqpReceiver $amqpReceiver;
     protected ?SerializerInterface $amqpSerializer;
 
     public function __construct(
-        Connection $connection,
-        SerializerInterface $serializer = null,
+        Connection               $connection,
+        SerializerInterface      $serializer = null,
         AmqpRpcMessageSerializer $amqpSerializer = null
-    ) {
-        $this->connection     = $connection;
-        $this->serializer     = $serializer;
+    )
+    {
+        $this->connection = $connection;
+        $this->serializer = $serializer;
         $this->amqpSerializer = $amqpSerializer;
 
         $this->amqpReceiver = new AmqpRcpReceiver($connection, $serializer, $amqpSerializer);
@@ -82,27 +83,38 @@ class AmqpRpcTransport extends AmqpTransport
         //Command logic
         if ($amqpRpcCommandStamp = $envelope->last(AmqpRpcCommandStamp::class)) {
 
-            $envelope = $envelope->with(new AmqpStamp($amqpRpcCommandStamp->getQueueName(), AMQP_NOPARAM, [
+            $amqpAttributes = [
                 'headers' => [
                     'executor' => $amqpRpcCommandStamp->getExecutorName()
                 ],
-            ]));
+            ];
+            if ($amqpRpcCommandStamp->getPriority() > 0) {
+                $amqpAttributes['priority'] = $amqpRpcCommandStamp->getPriority();
+            }
+            $envelope = $envelope->with(new AmqpStamp($amqpRpcCommandStamp->getRoutingKey(), AMQP_NOPARAM, $amqpAttributes));
 
             //Query logic
         } elseif ($amqpRpcQueryStamp = $envelope->last(AmqpRpcQueryStamp::class)) {
-            $queueName     = $amqpRpcQueryStamp->getReplayToQueue();
+            $queueName = $amqpRpcQueryStamp->getReplayToQueue();
             $correlationId = $amqpRpcQueryStamp->getCorrelationId();
 
+
+            $amqpAttributes = [
+                'headers' => [
+                    'executor' => $amqpRpcQueryStamp->getExecutorName()
+                ],
+                'correlation_id' => $amqpRpcQueryStamp->getCorrelationId(),
+                'reply_to' => $amqpRpcQueryStamp->getReplayToQueue()
+            ];
+
+            if ($amqpRpcQueryStamp->getPriority() > 0) {
+                $amqpAttributes['priority'] = $amqpRpcQueryStamp->getPriority();
+            }
+
             $rpcEnvelope = $envelope->with(new AmqpStamp(
-                $amqpRpcQueryStamp->getQueueName(),
+                $amqpRpcQueryStamp->getRoutingKey(),
                 AMQP_NOPARAM,
-                [
-                    'headers'        => [
-                        'executor' => $amqpRpcQueryStamp->getExecutorName()
-                    ],
-                    'correlation_id' => $amqpRpcQueryStamp->getCorrelationId(),
-                    'reply_to'       => $amqpRpcQueryStamp->getReplayToQueue()
-                ]
+                $amqpAttributes
             ));
 
             $responseQueue = $this->createResponseQueue($amqpRpcQueryStamp);
@@ -124,11 +136,11 @@ class AmqpRpcTransport extends AmqpTransport
                     throw new TransportException('Amqp RPC Query - answer TTL expired!');
                 }
 
-                $body    = $amqpEnvelope->getBody();
+                $body = $amqpEnvelope->getBody();
                 $headers = $amqpEnvelope->getHeaders();
 
                 $respEnvelope = $this->serializer->decode([
-                    'body'    => false === $body ? '' : $body,
+                    'body' => false === $body ? '' : $body,
                     // workaround https://github.com/pdezwart/php-amqp/issues/351
                     'headers' => $headers,
                 ]);
@@ -139,6 +151,10 @@ class AmqpRpcTransport extends AmqpTransport
                         'amqp_rpc_query_handler'));
                 }
 
+                /** @var AmqpReceivedStamp $amqpReceivedStamp */
+                $amqpReceivedStamp = $respEnvelope->last(AmqpReceivedStamp::class);
+
+
             } catch (MessageDecodingFailedException $exception) {
                 // invalid message of some type
                 $this->rejectAmqpEnvelope($amqpEnvelope, $queueName);
@@ -146,8 +162,8 @@ class AmqpRpcTransport extends AmqpTransport
                 throw $exception;
             }
 
-
-            return $envelope->with(new AmqpReceivedStamp($amqpEnvelope, $amqpRpcQueryStamp->getQueueName()));
+            //TODO: Need to check the response queue name
+            return $envelope->with(new AmqpReceivedStamp($amqpEnvelope, $amqpReceivedStamp ? $amqpReceivedStamp->getQueueName() : $amqpRpcQueryStamp->getRoutingKey()));
 
 
         }
