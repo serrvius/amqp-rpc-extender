@@ -160,6 +160,10 @@ class AmqpRpcTransport extends AmqpTransport
                 $this->rejectAmqpEnvelope($amqpEnvelope, $queueName);
 
                 throw $exception;
+            } finally {
+                if($responseQueue instanceof \AMQPQueue){
+                    $responseQueue->delete(AMQP_IFUNUSED);
+                }
             }
 
             //TODO: Need to check the response queue name
@@ -179,6 +183,14 @@ class AmqpRpcTransport extends AmqpTransport
         }
     }
 
+    /**
+     * @param AmqpRpcQueryStamp $amqpRpcQueryStamp
+     * @return \AMQPQueue
+     * @throws \AMQPChannelException
+     * @throws \AMQPConnectionException
+     * @throws \AMQPException
+     * @throws \AMQPQueueException
+     */
     protected function createResponseQueue(AmqpRpcQueryStamp $amqpRpcQueryStamp)
     {
         $responseQueue = $this->amqpFactory->createQueue($this->connection->channel());
