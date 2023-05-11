@@ -33,7 +33,7 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 if ($queryExecutorObject instanceof AmqpRpcQueryInterface) {
                     $decodedQueryBody = json_decode($encodedEnvelope['body'] ?? '[]', true);
                     $encodedEnvelope['body'] = json_encode([
-                        'queryData' => $decodedBody['queryData']??$decodedQueryBody
+                        'queryData' => $decodedQueryBody['queryData']??$decodedQueryBody
                     ]);
                 } else {
                     $encodedEnvelope['body'] = $encodedEnvelope['body'] ?? false;
