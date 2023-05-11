@@ -31,8 +31,9 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 $encodedEnvelope['headers']['type'] = get_class($queryExecutorObject);
 
                 if ($queryExecutorObject instanceof AmqpRpcQueryInterface) {
+                    $decodedQueryBody = json_decode($encodedEnvelope['body'] ?? '[]', true);
                     $encodedEnvelope['body'] = json_encode([
-                        'queryData' => json_decode($encodedEnvelope['body'] ?? '[]', true)
+                        'queryData' => $decodedBody['queryData']??$decodedQueryBody
                     ]);
                 } else {
                     $encodedEnvelope['body'] = $encodedEnvelope['body'] ?? false;
@@ -43,8 +44,9 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 $commandExecutorObject              = $this->commandExecutors->get($executor);
                 $encodedEnvelope['headers']['type'] = get_class($commandExecutorObject);
                 if ($commandExecutorObject instanceof AmqpRpcCommandInterface) {
+                    $decodedCommandData = json_decode($encodedEnvelope['body'] ?? '[]', true);
                     $encodedEnvelope['body'] = json_encode([
-                        'commandData' => json_decode($encodedEnvelope['body'] ?? '[]', true)
+                        'commandData' => $decodedCommandData['commandData']??$decodedCommandData
                     ]);
                 } else {
                     $encodedEnvelope['body'] = $encodedEnvelope['body'] ?? false;
