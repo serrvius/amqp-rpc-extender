@@ -7,7 +7,7 @@
         "php": ">=8.1",
         "ext-amqp": "*",
         "symfony/amqp-messenger": "^6.1",
-        "symfony/uid": "6.1.*",
+        "symfony/uid": "^6.1",
         "symfony/serializer-pack": "^1.1"
     },
     "license": "MIT",
