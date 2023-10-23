@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 
 class AmqpRpcExtenderPass implements CompilerPassInterface
 {
@@ -33,8 +34,15 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
             $container->setDefinition('messenger.transport.amqp.factory', $amqpDefinition);
         }
 
+        $defaultMessengerSerializer = new Definition(Serializer::class);
+        $defaultMessengerSerializer->setArgument(0, null);
+        $defaultMessengerSerializer->setArgument(1,'json');
+        # Preventing came_case_to_snake_case converting
+        $defaultMessengerSerializer->setArgument(2,['name_converter' => null]);
+        $container->setDefinition('messenger.transport.rpc.default.symfony_serializer', $defaultMessengerSerializer);
+
         $serializerDefinition = new Definition(AmqpRpcMessageSerializer::class);
-        $serializerDefinition->setArgument(0, new Reference('messenger.transport.symfony_serializer'));
+        $serializerDefinition->setArgument(0, new Reference('messenger.transport.rpc.default.symfony_serializer'));
 
         $queryExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.query.executor',
