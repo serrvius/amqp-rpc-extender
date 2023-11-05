@@ -6,8 +6,10 @@ use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\SerializerStamp;
 use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class AmqpRpcMessageSerializer implements SerializerInterface
 {
@@ -63,6 +65,20 @@ class AmqpRpcMessageSerializer implements SerializerInterface
 
     public function encode(Envelope $envelope): array
     {
+        $envelope = $envelope->with(new SerializerStamp([
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => static function(mixed $data) {
+                $circularReferenceResponse = '#CIRCULAR_REFERENCE#';
+                $suggestedMethods = ['getId','getTitle','getName'];
+                foreach ($suggestedMethods as $method){
+                    if(method_exists($data,$method)){
+                        $circularReferenceResponse = $data->{$method}();
+                    }
+                }
+
+                return $circularReferenceResponse;
+            }
+        ]));
+
         return $this->defaultSerializer->encode($envelope);
     }
 
