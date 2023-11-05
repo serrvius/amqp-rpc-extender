@@ -33,9 +33,9 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 $encodedEnvelope['headers']['type'] = get_class($queryExecutorObject);
 
                 if ($queryExecutorObject instanceof AmqpRpcQueryInterface) {
-                    $decodedQueryBody = json_decode($encodedEnvelope['body'] ?? '[]', true);
+                    $decodedQueryBody        = json_decode($encodedEnvelope['body'] ?? '[]', true);
                     $encodedEnvelope['body'] = json_encode([
-                        'queryData' => $decodedQueryBody['queryData']??$decodedQueryBody
+                        'queryData' => $decodedQueryBody['queryData'] ?? $decodedQueryBody
                     ]);
                 } else {
                     $encodedEnvelope['body'] = $encodedEnvelope['body'] ?? false;
@@ -46,9 +46,9 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 $commandExecutorObject              = $this->commandExecutors->get($executor);
                 $encodedEnvelope['headers']['type'] = get_class($commandExecutorObject);
                 if ($commandExecutorObject instanceof AmqpRpcCommandInterface) {
-                    $decodedCommandData = json_decode($encodedEnvelope['body'] ?? '[]', true);
+                    $decodedCommandData      = json_decode($encodedEnvelope['body'] ?? '[]', true);
                     $encodedEnvelope['body'] = json_encode([
-                        'commandData' => $decodedCommandData['commandData']??$decodedCommandData
+                        'commandData' => $decodedCommandData['commandData'] ?? $decodedCommandData
                     ]);
                 } else {
                     $encodedEnvelope['body'] = $encodedEnvelope['body'] ?? false;
@@ -65,12 +65,17 @@ class AmqpRpcMessageSerializer implements SerializerInterface
 
     public function encode(Envelope $envelope): array
     {
-        $envelope = $envelope->with(new SerializerStamp([
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => static function(mixed $data) {
+        return $this->defaultSerializer->encode($envelope);
+    }
+
+    public function addCircularHandler(Envelope $envelope): Envelope
+    {
+        return $envelope->with(new SerializerStamp([
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => static function (mixed $data) {
                 $circularReferenceResponse = '#CIRCULAR_REFERENCE#';
-                $suggestedMethods = ['getId','getTitle','getName'];
-                foreach ($suggestedMethods as $method){
-                    if(method_exists($data,$method)){
+                $suggestedMethods          = ['getId', 'getTitle', 'getName'];
+                foreach ($suggestedMethods as $method) {
+                    if (method_exists($data, $method)) {
                         $circularReferenceResponse = $data->{$method}();
                     }
                 }
@@ -78,8 +83,6 @@ class AmqpRpcMessageSerializer implements SerializerInterface
                 return $circularReferenceResponse;
             }
         ]));
-
-        return $this->defaultSerializer->encode($envelope);
     }
 
 }

@@ -117,6 +117,10 @@ class AmqpRpcTransport extends AmqpTransport
                 $amqpAttributes
             ));
 
+            if($this->serializer instanceof AmqpRpcMessageSerializer){
+                $rpcEnvelope = $this->serializer->addCircularHandler($rpcEnvelope);
+            }
+
             $responseQueue = $this->createResponseQueue($amqpRpcQueryStamp);
 
             parent::send($rpcEnvelope);

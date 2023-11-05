@@ -126,6 +126,11 @@ class AmqpRcpReceiver extends AmqpReceiver
                         )
                     ]
                 );
+
+                if($this->serializer instanceof AmqpRpcMessageSerializer){
+                    $responseEnvelop = $this->serializer->addCircularHandler($responseEnvelop);
+                }
+
                 $this->amqpRpcTransport->send($responseEnvelop);
 
             }
