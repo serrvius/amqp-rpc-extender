@@ -14,13 +14,18 @@ use Symfony\Component\Serializer\Normalizer\UidNormalizer;
 use Symfony\Component\Serializer\Serializer as SymfonySerializer;
 use Symfony\Component\Serializer\SerializerInterface as SymfonySerializerInterface;
 
-class AmqpRpcSerializer extends Serializer
+class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
 {
+    private SymfonySerializerInterface $symfonySerializer;
+
     public function __construct(SymfonySerializerInterface $serializer = null,
                                 string                     $format = 'json',
                                 array                      $context = []
     ) {
-        parent::__construct($serializer ?? self::create(), $format, $context);
+
+        $this->symfonySerializer = self::create()->symfonySerializer;
+
+        parent::__construct($this->symfonySerializer, $format, $context);
     }
 
     public static function create(): self
@@ -37,5 +42,15 @@ class AmqpRpcSerializer extends Serializer
         $serializer = new SymfonySerializer($normalizers, $encoders);
 
         return new self($serializer);
+    }
+
+    public function serialize(mixed $data, string $format, array $context = []): string
+    {
+        return $this->symfonySerializer->serialize($data, $format, $context);
+    }
+
+    public function deserialize(mixed $data, string $type, string $format, array $context = []): mixed
+    {
+        return $this->symfonySerializer->deserialize($data, $type, $format, $context);
     }
 }
