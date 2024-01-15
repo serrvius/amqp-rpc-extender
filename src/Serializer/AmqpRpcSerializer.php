@@ -12,9 +12,17 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\UidNormalizer;
 use Symfony\Component\Serializer\Serializer as SymfonySerializer;
+use Symfony\Component\Serializer\SerializerInterface as SymfonySerializerInterface;
 
 class AmqpRpcSerializer extends Serializer
 {
+    public function __construct(SymfonySerializerInterface $serializer = null,
+                                string                     $format = 'json',
+                                array                      $context = []
+    ) {
+        parent::__construct($serializer ?? self::create(), $format, $context);
+    }
+
     public static function create(): self
     {
         if (!class_exists(SymfonySerializer::class)) {
