@@ -23,7 +23,7 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
                                 array                      $context = []
     ) {
 
-        $this->symfonySerializer = self::create()->symfonySerializer;
+        $this->symfonySerializer = $serializer ?? self::create()->symfonySerializer;
 
         parent::__construct($this->symfonySerializer, $format, $context);
     }
