@@ -2,9 +2,11 @@
 
 namespace Serrvius\AmqpRpcExtender\Serializer;
 
+use Serrvius\AmqpRpcExtender\Serializer\Extractor\UuidTypeExtractor;
 use Symfony\Component\Messenger\Exception\LogicException;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\Serializer;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -22,7 +24,6 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
                                 string                     $format = 'json',
                                 array                      $context = []
     ) {
-
         $this->symfonySerializer = $serializer ?? self::create()->symfonySerializer;
 
         parent::__construct($this->symfonySerializer, $format, $context);
@@ -38,7 +39,16 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
         }
 
         $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new UidNormalizer(), new DateTimeNormalizer(), new ArrayDenormalizer(), new ObjectNormalizer()];
+        $normalizers = [
+            new UidNormalizer(),
+            new DateTimeNormalizer(),
+            new ArrayDenormalizer(),
+            new ObjectNormalizer(
+                propertyTypeExtractor: new PropertyInfoExtractor(
+                                           typeExtractors: [new UuidTypeExtractor()]
+                                       )
+            )
+        ];
         $serializer = new SymfonySerializer($normalizers, $encoders);
 
         return new self($serializer);
