@@ -13,10 +13,11 @@ class UuidTypeExtractor implements PropertyTypeExtractorInterface
         try {
             $classReflection = new \ReflectionClass($class);
             $property = $classReflection->getProperty($property);
-            if ($property->getType()->getName() === Uuid::class) {
+            $type = $property->getType();
+            if ($type->getName() === Uuid::class) {
                 return [new Type(
                     Type::BUILTIN_TYPE_OBJECT,
-                    false,
+                    $type->allowsNull(),
                     Uuid::class,
                     false
                 )
