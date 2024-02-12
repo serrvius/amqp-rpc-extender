@@ -8,7 +8,13 @@ use Symfony\Component\Uid\Uuid;
 
 class UuidTypeExtractor implements PropertyTypeExtractorInterface
 {
-    public function getTypes(string $class, string $property, array $context = [])
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array $context
+     * @return Type[]|null
+     */
+    public function getTypes(string $class, string $property, array $context = []): ?array
     {
         try {
             $classReflection = new \ReflectionClass($class);
