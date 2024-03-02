@@ -130,6 +130,10 @@ class AmqpRpcTransport extends AmqpTransport
                 usleep(250);
             } while ((!$amqpEnvelope || $correlationId != $amqpEnvelope->getCorrelationId()) && time() - $startTime < $amqpRpcQueryStamp->waitingResponseTTL);
 
+            $responseQueue->unbind(
+                $this->connection->exchange()->getName(),
+                $amqpRpcQueryStamp->getReplayToQueue()
+            );
 
             try {
                 if (!$amqpEnvelope) {
@@ -198,7 +202,10 @@ class AmqpRpcTransport extends AmqpTransport
         $responseQueue->setFlags(AMQP_EXCLUSIVE);
         $responseQueue->declareQueue();
 
-        $responseQueue->bind($this->connection->exchange()->getName(), $amqpRpcQueryStamp->getReplayToQueue());
+        $responseQueue->bind(
+            $this->connection->exchange()->getName(),
+            $amqpRpcQueryStamp->getReplayToQueue()
+        );
 
 
         return $responseQueue;
