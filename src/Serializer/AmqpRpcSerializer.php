@@ -4,6 +4,7 @@ namespace Serrvius\AmqpRpcExtender\Serializer;
 
 use Serrvius\AmqpRpcExtender\Serializer\Extractor\UuidTypeExtractor;
 use Symfony\Component\Messenger\Exception\LogicException;
+use Symfony\Component\Messenger\Transport\Serialization\Normalizer\FlattenExceptionNormalizer;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -43,6 +44,7 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
             new UidNormalizer(),
             new DateTimeNormalizer(),
             new ArrayDenormalizer(),
+            new FlattenExceptionNormalizer(),
             new ObjectNormalizer(
                 propertyTypeExtractor: new PropertyInfoExtractor(
                                            typeExtractors: [new UuidTypeExtractor()]

@@ -45,9 +45,9 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
         $serializerDefinition = new Definition(AmqpRpcMessageSerializer::class);
         $serializerDefinition->setArgument(0, new Reference('messenger.transport.rpc.default.symfony_serializer'));
 
-        $errorDetailsStampListener = new Definition(AmqpAddErrorDetailsStampListener::class);
-        $errorDetailsStampListener->addTag('kernel.event_subscriber');
-        $container->set('messenger.failure.add_error_details_stamp_listener', $errorDetailsStampListener);
+//        $errorDetailsStampListener = new Definition(AmqpAddErrorDetailsStampListener::class);
+//        $errorDetailsStampListener->addTag('kernel.event_subscriber');
+//        $container->set('messenger.failure.add_error_details_stamp_listener', $errorDetailsStampListener);
 
         $queryExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.query.executor',
