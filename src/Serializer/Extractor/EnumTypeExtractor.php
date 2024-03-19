@@ -20,7 +20,7 @@ class EnumTypeExtractor implements PropertyTypeExtractorInterface
             $classReflection = new \ReflectionClass($class);
             $property = $classReflection->getProperty($property);
             $type = $property->getType();
-            if ($type->getName() === BackedEnum::class) {
+            if (is_subclass_of($type->getName(), BackedEnum::class)) {
                 return [new Type(
                     Type::BUILTIN_TYPE_OBJECT,
                     $type->allowsNull(),
