@@ -24,7 +24,7 @@ class EnumTypeExtractor implements PropertyTypeExtractorInterface
                 return [new Type(
                     Type::BUILTIN_TYPE_OBJECT,
                     $type->allowsNull(),
-                    BackedEnum::class,
+                    $type->getName(),
                     false
                 )
                 ];
