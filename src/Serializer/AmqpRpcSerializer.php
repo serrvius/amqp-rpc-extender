@@ -2,6 +2,7 @@
 
 namespace Serrvius\AmqpRpcExtender\Serializer;
 
+use Serrvius\AmqpRpcExtender\Serializer\Extractor\EnumTypeExtractor;
 use Serrvius\AmqpRpcExtender\Serializer\Extractor\UuidTypeExtractor;
 use Symfony\Component\Messenger\Exception\LogicException;
 use Symfony\Component\Messenger\Transport\Serialization\Normalizer\FlattenExceptionNormalizer;
@@ -51,6 +52,7 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
                 propertyTypeExtractor: new PropertyInfoExtractor(
                     typeExtractors: [
                         new UuidTypeExtractor(),
+                        new EnumTypeExtractor()
                     ]
                 )
             )
