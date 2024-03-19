@@ -11,6 +11,7 @@ use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\UidNormalizer;
@@ -22,8 +23,8 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
     private SymfonySerializerInterface $symfonySerializer;
 
     public function __construct(SymfonySerializerInterface $serializer = null,
-                                string                     $format = 'json',
-                                array                      $context = []
+        string $format = 'json',
+        array $context = []
     ) {
         $this->symfonySerializer = $serializer ?? self::create()->symfonySerializer;
 
@@ -34,21 +35,24 @@ class AmqpRpcSerializer extends Serializer implements SymfonySerializerInterface
     {
         if (!class_exists(SymfonySerializer::class)) {
             throw new LogicException(sprintf('The "%s" class requires Symfony\'s Serializer component. Try running "composer require symfony/serializer" or use "%s" instead.',
-                                             __CLASS__, PhpSerializer::class
-                                     )
+                    __CLASS__, PhpSerializer::class
+                )
             );
         }
 
         $encoders = [new XmlEncoder(), new JsonEncoder()];
         $normalizers = [
             new UidNormalizer(),
+            new BackedEnumNormalizer(),
             new DateTimeNormalizer(),
             new ArrayDenormalizer(),
             new FlattenExceptionNormalizer(),
             new ObjectNormalizer(
                 propertyTypeExtractor: new PropertyInfoExtractor(
-                                           typeExtractors: [new UuidTypeExtractor()]
-                                       )
+                    typeExtractors: [
+                        new UuidTypeExtractor(),
+                    ]
+                )
             )
         ];
         $serializer = new SymfonySerializer($normalizers, $encoders);
