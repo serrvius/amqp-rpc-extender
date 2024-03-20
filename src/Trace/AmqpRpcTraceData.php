@@ -7,7 +7,7 @@ namespace Serrvius\AmqpRpcExtender\Trace;
 use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcTraceStamp;
 use Symfony\Component\Uid\Uuid;
 
-class AmqpRpcTraceData
+final class AmqpRpcTraceData
 {
     private ?string $requestId = null;
     private null|string|Uuid $userId = null;

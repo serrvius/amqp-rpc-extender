@@ -10,7 +10,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 
-class AmqpRpcTraceMiddleware implements MiddlewareInterface
+final class AmqpRpcTraceMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private readonly AmqpRpcTraceData $amqpRpcTraceData
