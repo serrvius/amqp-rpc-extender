@@ -4,10 +4,8 @@ namespace Serrvius\AmqpRpcExtender\DependencyInjection;
 
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
-use Serrvius\AmqpRpcExtender\Middleware\AmqpRpcTraceMiddleware;
 use Serrvius\AmqpRpcExtender\Serializer\AmqpRpcMessageSerializer;
 use Serrvius\AmqpRpcExtender\Serializer\AmqpRpcSerializer;
-use Serrvius\AmqpRpcExtender\Trace\AmqpRpcTraceData;
 use Serrvius\AmqpRpcExtender\Transport\AmqpRpcTransportFactory;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
@@ -68,12 +66,6 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
         );
 
         $container->setDefinition('messenger.transport.rpc.symfony_serializer', $serializerDefinition);
-
-        $container->setDefinition('amqp.rpc.trace.data', new Definition(AmqpRpcTraceData::class))
-            ->setPublic(true);
-
-        $container->setDefinition('messenger.amqp.rpc.middleware.trace', new Definition(AmqpRpcTraceMiddleware::class))
-            ->setArgument(0, new Reference('amqp.rpc.trace.data'));
     }
 
     protected function registerExecutorServiceLocator(

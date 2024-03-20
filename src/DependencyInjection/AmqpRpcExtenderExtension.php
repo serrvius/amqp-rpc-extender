@@ -7,13 +7,15 @@ use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcQueryExecutor;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcRequestInterface;
+use Serrvius\AmqpRpcExtender\Middleware\AmqpRpcTraceMiddleware;
+use Serrvius\AmqpRpcExtender\Trace\AmqpRpcTraceData;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Reference;
 
 class AmqpRpcExtenderExtension extends Extension
 {
-
     public function load(array $configs, ContainerBuilder $container)
     {
         $container->registerForAutoconfiguration(AmqpRpcRequestInterface::class)
@@ -27,24 +29,29 @@ class AmqpRpcExtenderExtension extends Extension
 
         $this->registerAnnotationExecutors($container);
 
+        $container->register('amqp.rpc.trace.data', AmqpRpcTraceData::class)
+            ->setPublic(true);
+
+        $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
+            ->setArgument(0, new Reference('amqp.rpc.trace.data'));
     }
 
     protected function registerAnnotationExecutors(ContainerBuilder $container)
     {
         //Register query executors tags
         $container->registerAttributeForAutoconfiguration(AsAmqpRpcQueryExecutor::class,
-            static function (ChildDefinition $definition, AsAmqpRpcQueryExecutor $attribute): void {
+            static function(ChildDefinition $definition, AsAmqpRpcQueryExecutor $attribute): void {
                 $tagAttributes = get_object_vars($attribute);
                 $definition->addTag('messenger.amqp.rpc.query.executor', $tagAttributes);
-            });
+            }
+        );
 
         //Register command executors tags
         $container->registerAttributeForAutoconfiguration(AsAmqpRpcCommandExecutor::class,
-            static function (ChildDefinition $definition, AsAmqpRpcCommandExecutor $attribute): void {
+            static function(ChildDefinition $definition, AsAmqpRpcCommandExecutor $attribute): void {
                 $tagAttributes = get_object_vars($attribute);
                 $definition->addTag('messenger.amqp.rpc.command.executor', $tagAttributes);
-            });
+            }
+        );
     }
-
-
 }
