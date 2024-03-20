@@ -73,7 +73,8 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
             ->setPublic(true);
 
         $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
-            ->setArgument(0, new Reference('amqp.rpc.trace.data'));
+            ->setArgument(0, new Reference('amqp.rpc.trace.data'))
+            ->setPublic(true);
     }
 
     protected function registerExecutorServiceLocator(
