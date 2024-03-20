@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Serrvius\AmqpRpcExtender\Trace;
 
+use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcTraceDataInterface;
 use Serrvius\AmqpRpcExtender\Stamp\AmqpRpcTraceStamp;
 use Symfony\Component\Uid\Uuid;
 
-final class AmqpRpcTraceData
+final class AmqpRpcTraceData implements AmqpRpcTraceDataInterface
 {
     private ?string $requestId = null;
     private null|string|Uuid $userId = null;

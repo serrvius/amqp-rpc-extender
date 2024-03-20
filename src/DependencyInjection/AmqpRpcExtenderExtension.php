@@ -7,6 +7,7 @@ use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcQueryExecutor;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcRequestInterface;
+use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcTraceDataInterface;
 use Serrvius\AmqpRpcExtender\Middleware\AmqpRpcTraceMiddleware;
 use Serrvius\AmqpRpcExtender\Trace\AmqpRpcTraceData;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -29,8 +30,14 @@ class AmqpRpcExtenderExtension extends Extension
 
         $this->registerAnnotationExecutors($container);
 
-        $container->register('amqp.rpc.trace.data', AmqpRpcTraceData::class)
-            ->setPublic(true);
+        $container->register('amqp.rpc.trace.data.default', AmqpRpcTraceData::class);
+        $container->registerForAutoconfiguration(AmqpRpcTraceDataInterface::class)
+            ->addTag('amqp.rpc.trace.data.instance');
+
+        $container->setAlias(
+            AmqpRpcTraceDataInterface::class,
+            'amqp.rpc.trace.data.default'
+        )->setPublic(true);
 
         $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
             ->setArgument(0, new Reference('amqp.rpc.trace.data'));
