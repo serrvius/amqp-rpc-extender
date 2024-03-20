@@ -11,7 +11,7 @@ class AmqpRpcTraceStamp implements StampInterface
 {
     public function __construct(
         public readonly Uuid|string|int|float $requestId,
-        public readonly Uuid|string|int|null $userId = null,
+        public readonly Uuid|null $userId = null,
     ) {
     }
 }

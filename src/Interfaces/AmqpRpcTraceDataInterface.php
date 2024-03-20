@@ -10,5 +10,5 @@ interface AmqpRpcTraceDataInterface
 {
     public function getRequestId(): ?string;
 
-    public function getUserId(): string|Uuid|null;
+    public function getUserId(): ?Uuid;
 }

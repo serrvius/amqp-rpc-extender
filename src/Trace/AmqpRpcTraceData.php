@@ -11,14 +11,17 @@ use Symfony\Component\Uid\Uuid;
 final class AmqpRpcTraceData implements AmqpRpcTraceDataInterface
 {
     private ?string $requestId = null;
-    private null|string|Uuid $userId = null;
+    private ?Uuid $userId = null;
     private bool $isInitialized = false;
 
     public function setTraceStamp(AmqpRpcTraceStamp $stamp): void
     {
         if (!$this->isInitialized()) {
             $this->requestId = $stamp->requestId;
-            $this->userId = $stamp->userId;
+
+            $this->userId = is_string($stamp->userId)
+                ? Uuid::fromString($stamp->userId)
+                : $stamp->userId;
 
             $this->isInitialized = true;
         }
@@ -34,7 +37,7 @@ final class AmqpRpcTraceData implements AmqpRpcTraceDataInterface
         return $this->requestId;
     }
 
-    public function getUserId(): string|Uuid|null
+    public function getUserId(): ?Uuid
     {
         return $this->userId;
     }
