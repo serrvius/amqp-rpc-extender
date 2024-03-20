@@ -2,11 +2,12 @@
 
 namespace Serrvius\AmqpRpcExtender\DependencyInjection;
 
-use Serrvius\AmqpRpcExtender\EventListener\AmqpAddErrorDetailsStampListener;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
+use Serrvius\AmqpRpcExtender\Middleware\AmqpRpcTraceMiddleware;
 use Serrvius\AmqpRpcExtender\Serializer\AmqpRpcMessageSerializer;
 use Serrvius\AmqpRpcExtender\Serializer\AmqpRpcSerializer;
+use Serrvius\AmqpRpcExtender\Trace\AmqpRpcTraceData;
 use Serrvius\AmqpRpcExtender\Transport\AmqpRpcTransportFactory;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
@@ -16,14 +17,11 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class AmqpRpcExtenderPass implements CompilerPassInterface
 {
-
     public function process(ContainerBuilder $container)
     {
-
         $amqpRpcFactoryDefinition = new Definition(AmqpRpcTransportFactory::class);
         $amqpRpcFactoryDefinition->addTag('messenger.transport_factory');
         $amqpRpcFactoryDefinition->setArgument(0, new Reference('messenger.transport.rpc.symfony_serializer'));
-
 
         $container->setDefinition('messenger.transport.amqp.rpc.factory', $amqpRpcFactoryDefinition);
 
@@ -37,22 +35,23 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
 
         $defaultMessengerSerializer = new Definition(AmqpRpcSerializer::class);
         $defaultMessengerSerializer->setArgument(0, null);
-        $defaultMessengerSerializer->setArgument(1,'json');
+        $defaultMessengerSerializer->setArgument(1, 'json');
         # Preventing came_case_to_snake_case converting
-        $defaultMessengerSerializer->setArgument(2,['name_converter' => null]);
+        $defaultMessengerSerializer->setArgument(2, ['name_converter' => null]);
         $container->setDefinition('messenger.transport.rpc.default.symfony_serializer', $defaultMessengerSerializer);
 
         $serializerDefinition = new Definition(AmqpRpcMessageSerializer::class);
         $serializerDefinition->setArgument(0, new Reference('messenger.transport.rpc.default.symfony_serializer'));
 
-//        $errorDetailsStampListener = new Definition(AmqpAddErrorDetailsStampListener::class);
-//        $errorDetailsStampListener->addTag('kernel.event_subscriber');
-//        $container->set('messenger.failure.add_error_details_stamp_listener', $errorDetailsStampListener);
+        //        $errorDetailsStampListener = new Definition(AmqpAddErrorDetailsStampListener::class);
+        //        $errorDetailsStampListener->addTag('kernel.event_subscriber');
+        //        $container->set('messenger.failure.add_error_details_stamp_listener', $errorDetailsStampListener);
 
         $queryExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.query.executor',
             AmqpRpcQueryInterface::class,
-            'executorName', $container);
+            'executorName', $container
+        );
 
         $commandExecutors = $this->registerExecutorServiceLocator(
             'messenger.amqp.rpc.command.executor',
@@ -70,6 +69,10 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
 
         $container->setDefinition('messenger.transport.rpc.symfony_serializer', $serializerDefinition);
 
+        $container->register('amqp.rpc.trace.data', AmqpRpcTraceData::class);
+        $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
+            ->setArgument(0, new Reference('amqp.rpc.trace.data'))
+            ->setPublic(true);
     }
 
     protected function registerExecutorServiceLocator(
@@ -83,7 +86,7 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
             $exRef = $container->getReflectionClass($executorClass);
             if ($exRef->isSubclassOf($instanceOf) && $exRef->hasMethod($indexMethod)) {
                 $method = $exRef->getMethod($indexMethod);
-                $name   = $method->invoke($exRef);
+                $name = $method->invoke($exRef);
                 if (!$container->hasDefinition($executorClass)) {
                     $executorDefinition = new Definition($executorClass);
                     $container->setDefinition($executorClass, $executorDefinition);
@@ -91,7 +94,7 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
                 $executorServices[$name] = new Reference($executorClass);
             } else {
                 //Extract name from Annotation param
-                $name = current(array_map(function ($params) {
+                $name = current(array_map(function($params) {
                     return $params['name'] ?? null;
                 }, $attributes));
                 if ($name) {
@@ -104,5 +107,4 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
 
         return $executorServices;
     }
-
 }
