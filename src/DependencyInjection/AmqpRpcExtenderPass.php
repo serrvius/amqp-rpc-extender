@@ -69,10 +69,11 @@ class AmqpRpcExtenderPass implements CompilerPassInterface
 
         $container->setDefinition('messenger.transport.rpc.symfony_serializer', $serializerDefinition);
 
-        $container->register('amqp.rpc.trace.data', AmqpRpcTraceData::class);
-        $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
-            ->setArgument(0, new Reference('amqp.rpc.trace.data'))
+        $container->register('amqp.rpc.trace.data', AmqpRpcTraceData::class)
             ->setPublic(true);
+
+        $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
+            ->setArgument(0, new Reference('amqp.rpc.trace.data'));
     }
 
     protected function registerExecutorServiceLocator(
