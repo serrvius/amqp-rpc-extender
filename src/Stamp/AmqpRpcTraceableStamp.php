@@ -10,9 +10,9 @@ use Symfony\Component\Uid\Uuid;
 class AmqpRpcTraceableStamp implements AmqpRpcStampInterface
 {
     public function __construct(
-        public readonly Uuid|string|int|float $requestId,
+        public readonly string|int|null $eventId,
+        public readonly Uuid|string|int|float|null $requestId = null,
         public readonly Uuid|null $userId = null,
-        public readonly string|int|null $eventId = null
     ) {
     }
 }

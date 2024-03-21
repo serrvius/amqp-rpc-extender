@@ -40,9 +40,9 @@ class AmqpRpcTraceableListener implements EventSubscriberInterface
 
         if (!$stamp) {
             $stamp = new AmqpRpcTraceableStamp(
+                $this->traceableInfo->eventId(),
                 $this->getRequestId(),
                 $this->getUserId(),
-                $this->traceableInfo->eventId()
             );
         }
 

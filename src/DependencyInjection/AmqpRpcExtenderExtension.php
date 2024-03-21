@@ -33,6 +33,7 @@ class AmqpRpcExtenderExtension extends Extension
 
         $this->registerAnnotationExecutors($container);
 
+        //Traceable
         $container->register('amqp.rpc.traceable.info.default', AmqpRpcTraceableInfo::class);
         $container->registerForAutoconfiguration(AmqpRpcTraceableInterface::class)
             ->addTag('amqp.rpc.traceable.instance');
@@ -42,9 +43,11 @@ class AmqpRpcExtenderExtension extends Extension
             'amqp.rpc.traceable.info.default'
         )->setPublic(true);
 
+        //Middleware
         $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
             ->setArgument(0, new Reference('amqp.rpc.traceable.info.default'));
 
+        //Event Listener
         $container->register('messenger.amqp.rpc.traceable.event.subscriber', AmqpRpcTraceableListener::class)
             ->setArgument(0, new Reference('request_stack', $container::IGNORE_ON_INVALID_REFERENCE))
             ->setArgument(1,
