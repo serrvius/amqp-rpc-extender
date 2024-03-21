@@ -15,4 +15,6 @@ interface AmqpRpcTraceableInterface
     public function requestId(): string|int|null;
 
     public function setTraceableStamp(AmqpRpcTraceableStamp $stamp): void;
+
+    public function getTraceableStamp(): AmqpRpcTraceableStamp;
 }

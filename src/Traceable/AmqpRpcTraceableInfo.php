@@ -14,6 +14,7 @@ final class AmqpRpcTraceableInfo implements AmqpRpcTraceableInterface
     private string|int|null $requestId = null;
     private string|null $eventId = null;
     private bool $isUserIdUuid = false;
+    private null|AmqpRpcTraceableStamp $stamp = null;
 
     public function eventId(): string
     {
@@ -50,5 +51,20 @@ final class AmqpRpcTraceableInfo implements AmqpRpcTraceableInterface
         $this->userId = $userId;
         $this->requestId = $stamp->requestId;
         $this->eventId = $stamp->eventId;
+
+        $this->stamp = $stamp;
+    }
+
+    public function getTraceableStamp(): AmqpRpcTraceableStamp
+    {
+        if (!$this->stamp) {
+            $this->stamp = new AmqpRpcTraceableStamp(
+                $this->eventId(),
+                $this->requestId(),
+                $this->userId(),
+            );
+        }
+
+        return $this->stamp;
     }
 }
