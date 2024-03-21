@@ -44,7 +44,7 @@ class AmqpRpcExtenderExtension extends Extension
             ->setArgument(0, new Reference('amqp.rpc.traceable.info.default'));
 
         $container->register('messenger.amqp.rpc.traceable.event.subscriber', AmqpRpcTraceableListener::class)
-            ->addTag('kernel.event_subscriber');
+            ->addTag('kernel.event_listener');
     }
 
     protected function registerAnnotationExecutors(ContainerBuilder $container)
