@@ -12,27 +12,6 @@ use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
 
 class AmqpAddErrorDetailsStampListener implements EventSubscriberInterface
 {
-    //    public function onMessageFailed(WorkerMessageFailedEvent $event): void
-    //    {
-    //        $throwable = $event->getThrowable();
-    //        if ($throwable instanceof HandlerFailedException) {
-    //            $throwable = $throwable->getPrevious();
-    //        }
-    //
-    //        if ($throwable === null) {
-    //            return;
-    //        }
-    //
-    //        $stamp = new ErrorDetailsStamp($throwable::class, $throwable->getCode(), $throwable->getMessage());
-    //
-    //        $previousStamp = $event->getEnvelope()->last(ErrorDetailsStamp::class);
-    //
-    //        // Do not append duplicate information
-    //        if ($previousStamp === null || ! $previousStamp->equals($stamp)) {
-    //            $event->addStamps($stamp);
-    //        }
-    //    }
-
     public function onMessageFailed(WorkerMessageFailedEvent $event): void
     {
         $throwable = $event->getThrowable();
@@ -56,7 +35,7 @@ class AmqpAddErrorDetailsStampListener implements EventSubscriberInterface
             );
         }
 
-        if(null === $stamp){
+        if (null === $stamp) {
             $stamp = new ErrorDetailsStamp($throwable::class, $throwable->getCode(), $throwable->getMessage());
         }
 
