@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 
 class AmqpRpcExtenderExtension extends Extension
 {
@@ -44,7 +46,14 @@ class AmqpRpcExtenderExtension extends Extension
             ->setArgument(0, new Reference('amqp.rpc.traceable.info.default'));
 
         $container->register('messenger.amqp.rpc.traceable.event.subscriber', AmqpRpcTraceableListener::class)
-            ->addTag('kernel.event_listener');
+            ->addTag(
+                'kernel.event_listener',
+                ['event' => SendMessageToTransportsEvent::class, 'method' => 'onSendMessageToTransport']
+            )
+            ->addTag(
+                'kernel.event_listener',
+                ['event' => WorkerMessageReceivedEvent::class, 'method' => 'onWorkerMessageReceived']
+            );
     }
 
     protected function registerAnnotationExecutors(ContainerBuilder $container)
