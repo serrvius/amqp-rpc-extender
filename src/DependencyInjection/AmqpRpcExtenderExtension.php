@@ -4,6 +4,7 @@ namespace Serrvius\AmqpRpcExtender\DependencyInjection;
 
 use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcCommandExecutor;
 use Serrvius\AmqpRpcExtender\Annotation\AsAmqpRpcQueryExecutor;
+use Serrvius\AmqpRpcExtender\EventListener\AmqpRpcTraceableListener;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcCommandInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcQueryInterface;
 use Serrvius\AmqpRpcExtender\Interfaces\AmqpRpcRequestInterface;
@@ -41,6 +42,9 @@ class AmqpRpcExtenderExtension extends Extension
 
         $container->register('messenger.amqp.rpc.middleware.trace', AmqpRpcTraceMiddleware::class)
             ->setArgument(0, new Reference('amqp.rpc.traceable.info.default'));
+
+        $container->register('messenger.amqp.rpc.traceable.event.subscriber', AmqpRpcTraceableListener::class)
+            ->addTag('kernel.event_subscriber');
     }
 
     protected function registerAnnotationExecutors(ContainerBuilder $container)

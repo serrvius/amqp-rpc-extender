@@ -46,6 +46,7 @@ class AmqpRpcTraceableListener implements EventSubscriberInterface
             );
         }
 
+        $envelope->with($stamp);
         $this->traceableInfo->setTraceableStamp($stamp);
     }
 
