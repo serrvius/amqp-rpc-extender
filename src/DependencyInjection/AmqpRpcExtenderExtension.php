@@ -48,7 +48,7 @@ class AmqpRpcExtenderExtension extends Extension
         $container->register('messenger.amqp.rpc.traceable.event.subscriber', AmqpRpcTraceableListener::class)
             ->setArgument(0, new Reference('request_stack', $container::IGNORE_ON_INVALID_REFERENCE))
             ->setArgument(1,
-                new Reference('security.authenticator.access_token', $container::IGNORE_ON_INVALID_REFERENCE)
+                new Reference('security.token_storage', $container::IGNORE_ON_INVALID_REFERENCE)
             )
             ->setArgument(2, new Reference('amqp.rpc.traceable.info.default'))
             ->addTag(
