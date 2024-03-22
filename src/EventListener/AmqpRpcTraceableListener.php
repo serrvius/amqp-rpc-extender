@@ -18,8 +18,8 @@ use Symfony\Component\Uid\Uuid;
 class AmqpRpcTraceableListener implements EventSubscriberInterface
 {
     public function __construct(
-        private readonly RequestStack $requestStack,
-        private readonly TokenStorageInterface $tokenStorage,
+        private readonly ?RequestStack $requestStack,
+        private readonly ?TokenStorageInterface $tokenStorage,
         private readonly AmqpRpcTraceableInterface $traceableInfo
     ) {
     }
@@ -71,8 +71,8 @@ class AmqpRpcTraceableListener implements EventSubscriberInterface
     {
         return $this->requestStack
             ?->getCurrentRequest()
-            ->headers
-            ->get(TraceableRequestId::REQUEST_ID->value);
+            ?->headers
+            ?->get(TraceableRequestId::REQUEST_ID->value);
     }
 
     private function getTraceableStamp(Envelope $envelope): ?AmqpRpcTraceableStamp
