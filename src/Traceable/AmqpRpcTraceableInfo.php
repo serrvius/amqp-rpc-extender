@@ -37,7 +37,7 @@ final class AmqpRpcTraceableInfo implements AmqpRpcTraceableInterface
     public function setTraceableStamp(AmqpRpcTraceableStamp $stamp): void
     {
         $this->userId = $stamp->userId;
-        $this->requestId = $stamp->userId;
+        $this->requestId = $stamp->requestId;
         $this->eventId = $stamp->eventId;
 
         $this->stamp = $stamp;
