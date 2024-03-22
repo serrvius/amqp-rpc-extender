@@ -10,10 +10,9 @@ use Symfony\Component\Uid\Uuid;
 
 final class AmqpRpcTraceableInfo implements AmqpRpcTraceableInterface
 {
-    private string|int|null $userId = null;
+    private Uuid|string|int|null $userId = null;
     private string|int|null $requestId = null;
     private string|null $eventId = null;
-    private bool $isUserIdUuid = false;
     private null|AmqpRpcTraceableStamp $stamp = null;
 
     public function eventId(): string
@@ -25,31 +24,20 @@ final class AmqpRpcTraceableInfo implements AmqpRpcTraceableInterface
         return $this->eventId;
     }
 
-    public function userId(): ?string
+    public function userId(): Uuid|string|int|null
     {
         return $this->userId;
     }
 
-    public function requestId(): ?string
+    public function requestId(): string|int|null
     {
         return $this->requestId;
     }
 
-    public function isUserIdUuid(): bool
-    {
-        return $this->isUserIdUuid;
-    }
-
     public function setTraceableStamp(AmqpRpcTraceableStamp $stamp): void
     {
-        $userId = $stamp->userId;
-        if ($userId instanceof Uuid) {
-            $this->isUserIdUuid = true;
-            $userId = $userId->toRfc4122();
-        }
-
-        $this->userId = $userId;
-        $this->requestId = $stamp->requestId;
+        $this->userId = $stamp->userId;
+        $this->requestId = $stamp->userId;
         $this->eventId = $stamp->eventId;
 
         $this->stamp = $stamp;
